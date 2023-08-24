@@ -6,19 +6,23 @@ import * as bcrypt from 'bcrypt';
 import { LoginDTO } from 'src/common/dto/auth/login.dto';
 import JwtFeature from 'src/shared/security/jwtFeature.utils';
 import { JwtService } from '@nestjs/jwt';
+import { LevelService } from '../level/level.service';
 @Injectable()
 export class AuthService {
     constructor(
 
         private userService: UserService,
+        private readonly levelService: LevelService,
         private jwtService: JwtService,
     ) {
 
     }
     
 //Register service
-async signup(signUpDto: SignUpDTO): Promise<UserEntity> {
-    const { password, password_confirm } = signUpDto;
+
+
+  async signup(signUpDto: SignUpDTO): Promise<UserEntity> {
+    const { password, password_confirm, levelId } = signUpDto;
 
     if (password !== password_confirm) {
         throw new BadRequestException('Passwords do not match!');
@@ -26,20 +30,54 @@ async signup(signUpDto: SignUpDTO): Promise<UserEntity> {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     try {
+        // Create the user
         const user = await this.userService.create({
             ...signUpDto,
             password: hashedPassword,
-            attributionDate: new Date()
+            attributionDate: new Date(),
         });
+
+        // Associate the user with a level
+        if (levelId) {
+            const level = await this.levelService.findLevelById(levelId);
+            if (level) {
+                user.level = level;
+                await this.userService.create(user);
+            }
+        }
 
         return user;
     } catch (error) {
-        if (error.code = 11000) {
+        if (error.code === 11000) {
             throw new ConflictException('Duplicate Email!!');
         }
         throw error;
     }
-}
+  }
+// async signup(signUpDto: SignUpDTO): Promise<UserEntity> {
+//     const { password, password_confirm } = signUpDto;
+
+//     if (password !== password_confirm) {
+//         throw new BadRequestException('Passwords do not match!');
+//     }
+//     const hashedPassword = await bcrypt.hash(password, 12);
+
+//     try {
+//         const user = await this.userService.create({
+//             ...signUpDto,
+//             password: hashedPassword,
+            
+//             attributionDate: new Date()
+//         });
+
+//         return user;
+//     } catch (error) {
+//         if (error.code = 11000) {
+//             throw new ConflictException('Duplicate Email!!');
+//         }
+//         throw error;
+//     }
+// }
 
     //Login user
     async login(dto: LoginDTO): Promise<{ token: string }> {

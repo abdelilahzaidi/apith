@@ -6,6 +6,8 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from 'src/shared/security/jwt.strategy';
 import { RoleModule } from '../role/role.module';
+import { LevelModule } from '../level/level.module';
+import { ProgramModule } from '../program/program.module';
 
 
 @Module({
@@ -19,7 +21,9 @@ import { RoleModule } from '../role/role.module';
           })
     ,
     forwardRef(() => UserModule), 
-    forwardRef(()=> RoleModule)  
+    forwardRef(()=> RoleModule),
+    forwardRef(()=> LevelModule),
+    forwardRef(()=> ProgramModule)  
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],

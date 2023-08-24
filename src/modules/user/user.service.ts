@@ -1,9 +1,11 @@
-import { ConflictException, HttpException, HttpStatus, Injectable, Put } from '@nestjs/common';
+import { UserEntity } from './../../common/entities/user';
+import { ConflictException, ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException, Put, Req } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserCreateDTO } from 'src/common/dto/user/user-create.dto';
-import { UserEntity } from 'src/common/entities/user';
+
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { SignUpDTO } from 'src/common/dto/auth/signup.dto';
 
 @Injectable()
 export class UserService {
@@ -15,7 +17,7 @@ export class UserService {
     async all():Promise<UserEntity[]>{
         return await this.userRepository.find();
     }
-    async create(data): Promise<UserEntity> {
+    async create(data, ids:number[]): Promise<UserEntity> {
         return this.userRepository.save(data);
     }
 
@@ -27,6 +29,15 @@ export class UserService {
         return this.userRepository.delete(id);
     }
 
+
+
+
+
+
+
+
+
+
     //Find a user by email
     async findOneByEmail(email : string): Promise<any> {
         return this.userRepository.findOne({where:{email}});
@@ -36,7 +47,7 @@ export class UserService {
         return this.userRepository.findOne({where:{id}});
     }
 
-    async createUser(dto :UserCreateDTO):Promise<UserEntity>{ 
+    async createUser(dto :SignUpDTO):Promise<UserEntity>{ 
           
         console.log("DTO ",dto)
         
@@ -44,18 +55,9 @@ export class UserService {
 
     try {
         const user = await this.userRepository.save({
-            first_name : dto.first_name,
-            last_name : dto.last_name,
-            email : dto.email,
-            birthDate:dto.birthDate,
-            actif : dto.actif,
-            gsm : dto.gsm,           
+            ...dto,
             password: hashedPassword,
-            attributionDate: new Date(),
-            gender:dto.gender,
-            //status :dto.status,
-            adress : dto.adress
-            
+            attributionDate: new Date()            
         });
         console.log("user ",user)
         return user;

@@ -3,6 +3,8 @@ import {
   IsEmail,
   IsIn,
   IsNotEmpty,
+  IsNumber,
+  IsOptional,
   IsString,
   Matches,
   MinLength,
@@ -59,4 +61,8 @@ export class SignUpDTO {
 
   @IsNotEmpty()
   gsm: string;
+
+  @IsOptional() 
+  @IsNumber()
+  levelId: number;
 }
